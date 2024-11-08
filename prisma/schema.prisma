@@ -1,0 +1,24 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model SendSMS {
+  id            Int      @id @default(autoincrement())
+  phoneNumber   String
+  createdAt     DateTime @default(now())
+  sms1SentAt    DateTime?
+  sms1Status    String?  // Can be "sent" or "pending"
+  sms2SentAt    DateTime?
+  sms2Status    String?  // Can be "sent" or "pending"
+  sms3SentAt    DateTime?
+  sms3Status    String?  // Can be "sent" or "pending"
+  sms4SentAt    DateTime?
+  sms4Status    String?  // Can be "sent" or "pending"
+  sms5SentAt    DateTime?
+  sms5Status    String?  // Can be "sent" or "pending"
+}
