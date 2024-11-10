@@ -1,11 +1,14 @@
-import fetch from 'node-fetch';
+import fetch from "node-fetch";
 
-const apiKey = process.env.TEXTLOCAL_API_KEY;  // Replace with your API key
-const sender = process.env.SENDER;  // Sender ID (this should be registered with Textlocal)
+const apiKey = process.env.TEXTLOCAL_API_KEY;  
+const sender = process.env.SENDER; 
 
 const sendSMS = async (phoneNumber, message) => {
+  console.log(`Preparing to send SMS to ${phoneNumber}: ${message}`);
   try {
     const url = `https://api.textlocal.in/send/?apiKey=${encodeURIComponent(apiKey)}&numbers=${encodeURIComponent(phoneNumber)}&sender=${encodeURIComponent(sender)}&message=${encodeURIComponent(message)}`;
+
+    console.log(url);
 
     const response = await fetch(url);
     const result = await response.json();
