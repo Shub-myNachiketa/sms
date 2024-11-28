@@ -12,6 +12,7 @@ const port = process.env.PORT || 3000;
 const client = new MongoClient(process.env.MONGO_URI);
 const dbName = process.env.DB_NAME;
 
+// Helper function to connect to the database
 const connectToDB = async () => {
   try {
     console.log("Connecting to MongoDB...");
@@ -30,7 +31,7 @@ app.use(bodyParser.json());
 // Callback endpoint to handle data from Poptin
 app.post('/poptin-callback', async (req, res) => {
   const db = await connectToDB();
-  const collection = db.collection('PoptinLeads'); // Replace with your actual collection name
+  const collection = db.collection('PoptinLeads'); // Replace with your collection name
 
   try {
     const data = req.body;
@@ -41,7 +42,8 @@ app.post('/poptin-callback', async (req, res) => {
     const fbclid = data.fbclid;
     const createdDate = new Date(); // Current timestamp
 
-    if (!email || !phone ) {
+    // Validation for required fields
+    if (!email || !phone || !fbclid) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
@@ -53,11 +55,21 @@ app.post('/poptin-callback', async (req, res) => {
       createdDate,
     });
 
-    console.log("Data saved to DB:", result.ops[0]);
-    res.status(200).json({ success: true, message: "Data saved successfully!" });
+    // Log the inserted ID instead of using `ops`
+    console.log("Data saved to DB with ID:", result.insertedId);
+
+    // Send success response
+    res.status(200).json({
+      success: true,
+      message: "Data saved successfully!",
+      insertedId: result.insertedId,
+    });
   } catch (error) {
     console.error("Error saving data:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 });
 
