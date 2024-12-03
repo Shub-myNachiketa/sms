@@ -11,6 +11,14 @@
         "src": "/(.*)",
         "dest": "/api/app.js"
       }
+    ],
+    "functions":[
+        {
+            "api/cron.js":{
+                "schedule":"0 2 * * *"
+            }
+
+        }
     ]
   }
   
