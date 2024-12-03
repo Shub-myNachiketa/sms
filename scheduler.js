@@ -1,5 +1,5 @@
 import { sendSMS } from './smsService.js';
-import { connectToDB } from './callbackHandler.js'; // Import the connection function
+import connectToDB from './callbackHandler.js';
 
 const messages = [
   "This is your 1st scheduled message",
@@ -18,11 +18,11 @@ const getNextSaturday = (date) => {
 };
 
 const scheduleMessages = async () => {
-  const db = await connectToDB(); // Establish the database connection
-  const collection = db.collection('SendSMS'); // Access the "SendSMS" collection
+  const db = await connectToDB(); 
+  const collection = db.collection('PoptinLeads'); 
 
   try {
-    // Fetch users
+   
     const users = await collection.find({}).toArray();
     console.log("Fetched users: ", users);
 
@@ -67,10 +67,7 @@ const scheduleMessages = async () => {
     }
   } catch (error) {
     console.error("Error scheduling messages:", error);
-  } finally {
-    // Close the MongoDB connection
-    await client.close();
-  }
+  } 
 };
 
 export { scheduleMessages };

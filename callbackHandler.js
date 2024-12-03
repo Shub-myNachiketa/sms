@@ -1,5 +1,4 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 
@@ -8,46 +7,45 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-// MongoDB connection setup
-const client = new MongoClient(process.env.MONGO_URI);
+const mongoUri = process.env.MONGO_URI;
 const dbName = process.env.DB_NAME;
 
-// Helper function to connect to the database
-const connectToDB = async () => {
+let db; 
+
+async function connectToDB() {
+  if (db) return db; 
   try {
-    console.log("Connecting to MongoDB...");
+    console.log('Connecting to MongoDB...');
+    const client = new MongoClient(mongoUri);
     await client.connect();
-    console.log("Connected to MongoDB!");
-    return client.db(dbName);
+    db = client.db(dbName);
+    console.log('Connected to MongoDB!');
+    return db;
   } catch (error) {
-    console.error("Failed to connect to MongoDB:", error);
+    console.error('Failed to connect to MongoDB:', error);
     throw error;
   }
-};
+}
 
-// Middleware to parse JSON bodies
-app.use(bodyParser.json());
+app.use(express.json());
 
-// Callback endpoint to handle data from Poptin
 app.post('/poptin-callback', async (req, res) => {
-  const db = await connectToDB();
-  const collection = db.collection('PoptinLeads'); // Replace with your collection name
-
   try {
-    const data = req.body;
+    const db = await connectToDB();
+    const collection = db.collection('PoptinLeads');
+    const { textfieldemail: email, textfieldphone: phone, fbclid } = req.body;
 
-    // Extract relevant fields
-    const email = data.textfieldemail;
-    const phone = data.textfieldphone;
-    const fbclid = data.fbclid;
-    const createdDate = new Date(); // Current timestamp
-
-    // Validation for required fields
     if (!email || !phone || !fbclid) {
-      return res.status(400).json({ error: "Missing required fields" });
+      return res.status(400).json({ error: 'Missing required fields: email, phone, or fbclid' });
     }
 
-    // Save data to MongoDB
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+  
+    const createdDate = new Date();
     const result = await collection.insertOne({
       email,
       phone,
@@ -55,20 +53,17 @@ app.post('/poptin-callback', async (req, res) => {
       createdDate,
     });
 
-    // Log the inserted ID instead of using `ops`
-    console.log("Data saved to DB with ID:", result.insertedId);
-
-    // Send success response
+    console.log('Data saved to DB with ID:', result.insertedId);
     res.status(200).json({
       success: true,
-      message: "Data saved successfully!",
+      message: 'Data saved successfully!',
       insertedId: result.insertedId,
     });
   } catch (error) {
-    console.error("Error saving data:", error);
+    console.error('Error saving data:', error);
     res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: 'Internal Server Error',
     });
   }
 });
@@ -77,3 +72,15 @@ app.post('/poptin-callback', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+
+process.on('SIGINT', async () => {
+  console.log('Shutting down gracefully...');
+  if (db) {
+    await db.client.close();
+    console.log('MongoDB connection closed');
+  }
+  process.exit(0);
+});
+
+export default connectToDB;
