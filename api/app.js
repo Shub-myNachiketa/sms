@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { scheduleMessages } from '../scheduler.js';
 import dotenv from 'dotenv';
-dotenv.config();
+dotenv.config({ path: '.env.local' }); 
 
 
 scheduleMessages();

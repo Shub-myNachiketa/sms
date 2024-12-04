@@ -1,19 +1,23 @@
 import express from 'express';
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
+import { scheduleMessages } from './scheduler.js';
+import { sendSMS } from './smsService.js';
 
-dotenv.config();
+
+dotenv.config({ path: '.env.local' });
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 const mongoUri = process.env.MONGO_URI;
 const dbName = process.env.DB_NAME;
+const mssg = "Hi Parents! Enroll your child for Free Sunday Gita Class by myNachiketa.com. Learn Gita via shlokas, stories every Sunday @11am. Register now bit.ly/3VZB5A2";
 
-let db; 
+let db;
 
 async function connectToDB() {
-  if (db) return db; 
+  if (db) return db;
   try {
     console.log('Connecting to MongoDB...');
     const client = new MongoClient(mongoUri);
@@ -35,23 +39,71 @@ app.post('/poptin-callback', async (req, res) => {
     const collection = db.collection('PoptinLeads');
     const { textfieldemail: email, textfieldphone: phone, fbclid } = req.body;
 
-    if (!email || !phone || !fbclid) {
-      return res.status(400).json({ error: 'Missing required fields: email, phone, or fbclid' });
+    // Validate required fields
+    if (!email || !phone) {
+      return res.status(400).json({ error: 'Missing required fields: email or phone' });
     }
 
+    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-  
     const createdDate = new Date();
-    const result = await collection.insertOne({
+    const userData = {
       email,
       phone,
       fbclid,
       createdDate,
-    });
+      // Initialize SMS status fields
+      sms1SentAt: null,
+      sms1Status: null,
+      sms2SentAt: null,
+      sms2Status: null,
+      sms3SentAt: null,
+      sms3Status: null,
+      sms4SentAt: null,
+      sms4Status: null,
+      sms5SentAt: null,
+      sms5Status: null,
+    };
+
+    const result = await collection.insertOne(userData);
+
+    // Send immediate SMS
+    try {
+      console.log('Sending immediate welcome SMS to:', phone);
+      const isSent = await sendSMS(phone,mssg);
+      if (isSent) {
+        await collection.updateOne(
+          { _id: result.insertedId },
+          {
+            $set: {
+              sms1SentAt: new Date(),
+              sms1Status: 'sent',
+            },
+          }
+        );
+        console.log('Immediate welcome SMS sent to:', phone);
+      } else {
+        console.error('Failed to send immediate welcome SMS to:', phone);
+      }
+    } catch (smsError) {
+      console.error('Error sending immediate SMS:', smsError);
+    }
+
+    // Schedule remaining messages for this user
+    try {
+      console.log('Scheduling remaining messages...');
+      await scheduleMessages({ 
+        _id: result.insertedId, 
+        phone, 
+        createdDate 
+      }); 
+    } catch (scheduleError) {
+      console.error('Error scheduling messages:', scheduleError);
+    }
 
     console.log('Data saved to DB with ID:', result.insertedId);
     res.status(200).json({
@@ -68,12 +120,11 @@ app.post('/poptin-callback', async (req, res) => {
   }
 });
 
-// Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-
+// Graceful shutdown to close MongoDB connection
 process.on('SIGINT', async () => {
   console.log('Shutting down gracefully...');
   if (db) {
