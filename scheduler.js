@@ -33,14 +33,19 @@ const sendScheduledSMS = async (phoneNumber, message, scheduleTime) => {
   }
 };
 
-const messages = [
-  "Hi Parents! Enroll your child for Free Sunday Gita Class by myNachiketa.com. Learn Gita via shlokas, stories every Sunday @11am. Register now bit.ly/3VZB5A2",
-  "Hi Parents! Enroll your child for Free Sunday Gita Class by myNachiketa.com. Learn Gita via shlokas, stories every Sunday @11am. Register now bit.ly/3VZB5A2",
-  "Hi Parents! Enroll your child for Free Sunday Gita Class by myNachiketa.com. Learn Gita via shlokas, stories every Sunday @11am. Register now bit.ly/3VZB5A2",
-  "Hi Parents! Enroll your child for Free Sunday Gita Class by myNachiketa.com. Learn Gita via shlokas, stories every Sunday @11am. Register now bit.ly/3VZB5A2",
-  "Hi Parents! Enroll your child for Free Sunday Gita Class by myNachiketa.com. Learn Gita via shlokas, stories every Sunday @11am. Register now bit.ly/3VZB5A2",
-];
-
+// const messages = [
+//   "Enroll your child for Free Sunday Gita Class. Learn Gita through shloka, activities & stories every Sunday @11am. https://www.mynachiketa.com/gita-class",
+//   "Want to tell Gita, Vedas, Upanishads based Stories to you kid. Explore https://www.mynachiketa.com/moral-stories, No:1 on Google Search for Bhagvad Gita Stories",
+//   "Get your child to learn Gita Songs at https://www.youtube.com/@my_Nachiketa. Subscribe now!",
+//   "You checked Gita books/Stories Get shlokas, stories, colouring, activity books for your child NOW. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books",
+//   "Buy Gita books in extra 10% discount today on book sets. More than 30,000 books sold. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books"
+// ];
+const messages=[
+  "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk",
+  "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk",
+  "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk",
+  "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk"
+]
 const getNextSaturday = (date) => {
   const nextSaturday = new Date(date);
   const dayOfWeek = nextSaturday.getDay();

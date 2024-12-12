@@ -9,13 +9,15 @@ dotenv.config({ path: '.env.local' });
 
 const app = express();
 const port = process.env.PORT || 3000;
-
 const mongoUri = process.env.MONGO_URI;
 const dbName = process.env.DB_NAME;
-const mssg = "Hi Parents! Enroll your child for Free Sunday Gita Class by myNachiketa.com. Learn Gita via shlokas, stories every Sunday @11am. Register now bit.ly/3VZB5A2";
+
+//mssg for 333615
+// const mssg = "Buy Gita books in extra 10% discount today on book sets. More than 30,000 books sold. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books";
+
+const mssg= "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk";
 
 let db;
-
 async function connectToDB() {
   if (db) return db;
   try {
@@ -54,9 +56,9 @@ app.post('/poptin-callback', async (req, res) => {
     const userData = {
       email,
       phone,
+      platform:"Poptin",
       fbclid,
       createdDate,
-      // Initialize SMS status fields
       sms1SentAt: null,
       sms1Status: null,
       sms2SentAt: null,
