@@ -10,9 +10,9 @@ const mongoUri = process.env.MONGO_URI;
 const dbName = process.env.DB_NAME;
 const shiprocketToken = process.env.SHIPROCKET_API_TOKEN;
 
-// const mssg = "Buy Gita books in extra 10% discount today on book sets. More than 30,000 books sold. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books";
+const mssg = "Get myNachiketa shloka, stories, colouring, activity books for your child NOW. 30,000+ books sold. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books";
 
-const mssg= "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk";
+// const mssg= "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk";
 
 let db;
 
@@ -59,7 +59,7 @@ const fetchShiprocketOrders = async () => {
 const processAmazonOrders = async () => {
   console.log("Fetching Amazon orders...");
   const orders = await fetchShiprocketOrders();
-  console.log(orders);
+  // console.log(orders);
 
   const db = await connectToDB();
   const collection = db.collection("PoptinLeads");

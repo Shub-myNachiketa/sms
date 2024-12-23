@@ -7,11 +7,11 @@ dotenv.config({ path: ".env.local" });
 const apiKey = process.env.TEXTLOCAL_API_KEY;
 const sender = process.env.SENDER;
 
-const IST_OFFSET = 5.5 * 60 * 60 * 1000; 
+const IST_OFFSET = 5.5 * 60 * 60 * 1000; // Offset for Indian Standard Time
 const getScheduleTimestamp = (date) => {
   const scheduledDate = new Date(date);
-  scheduledDate.setUTCHours(2, 30, 0, 0); 
-  return Math.floor(scheduledDate.getTime() / 1000);
+  scheduledDate.setUTCHours(4, 30, 0, 0); // Set time to 8:00 AM IST (2:30 AM UTC)
+  return Math.floor(scheduledDate.getTime() / 1000); // Convert to UNIX timestamp
 };
 
 const sendScheduledSMS = async (phoneNumber, message, scheduleTime) => {
@@ -20,8 +20,12 @@ const sendScheduledSMS = async (phoneNumber, message, scheduleTime) => {
     const response = await fetch(url);
     const result = await response.json();
 
+    console.log("Full API Response:", result); // Log the full response for debugging
+
     if (result.status === "success") {
-      console.log(`Scheduled SMS successfully to ${phoneNumber} at ${new Date(scheduleTime * 1000).toLocaleString()}`);
+      console.log(
+        `Scheduled SMS successfully to ${phoneNumber} at ${new Date(scheduleTime * 1000).toLocaleString()}`
+      );
       return true;
     } else {
       console.error(`Failed to schedule SMS to ${phoneNumber}: ${result.message}`);
@@ -33,19 +37,15 @@ const sendScheduledSMS = async (phoneNumber, message, scheduleTime) => {
   }
 };
 
-// const messages = [
-//   "Enroll your child for Free Sunday Gita Class. Learn Gita through shloka, activities & stories every Sunday @11am. https://www.mynachiketa.com/gita-class",
-//   "Want to tell Gita, Vedas, Upanishads based Stories to you kid. Explore https://www.mynachiketa.com/moral-stories, No:1 on Google Search for Bhagvad Gita Stories",
-//   "Get your child to learn Gita Songs at https://www.youtube.com/@my_Nachiketa. Subscribe now!",
-//   "You checked Gita books/Stories Get shlokas, stories, colouring, activity books for your child NOW. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books",
-//   "Buy Gita books in extra 10% discount today on book sets. More than 30,000 books sold. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books"
-// ];
-const messages=[
-  "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk",
-  "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk",
-  "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk",
-  "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk"
-]
+
+const messages = [
+  "Enroll your child for Free Sunday Gita Class. Learn Gita through shloka, activities & stories every Sunday @11am. https://www.mynachiketa.com/gita-class",
+  "Want to tell Gita, Vedas, Upanishads based Stories to your kid? Explore https://www.mynachiketa.com/moral-stories, No:1 on Google Search for Bhagvad Gita Stories",
+  "Get your child to learn Gita Songs at https://www.youtube.com/@my_Nachiketa. Subscribe now!",
+  "You checked Gita books/Stories. Get shlokas, stories, colouring, activity books for your child NOW. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books",
+  "Buy Gita books with an extra 10% discount today on book sets. More than 30,000 books sold. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books",
+];
+
 const getNextSaturday = (date) => {
   const nextSaturday = new Date(date);
   const dayOfWeek = nextSaturday.getDay();
@@ -62,11 +62,19 @@ const scheduleMessages = async (user = null) => {
     const users = user
       ? [user]
       : await collection.find({}).toArray();
-     
 
     for (const u of users) {
-      console.log("user = ",u);
-      const { _id, phone, createdDate, sms1SentAt, sms2SentAt, sms3SentAt, sms4SentAt, sms5SentAt } = u;
+      console.log("user = ", u);
+      const {
+        _id,
+        phone,
+        createdDate,
+        sms1SentAt,
+        sms2SentAt,
+        sms3SentAt,
+        sms4SentAt,
+        sms5SentAt,
+      } = u;
 
       const nextSaturdayAfterCreated = getNextSaturday(createdDate);
 
@@ -77,7 +85,6 @@ const scheduleMessages = async (user = null) => {
         { dateField: sms4SentAt, dbField: "sms4SentAt", statusField: "sms4Status", message: messages[3] },
         { dateField: sms5SentAt, dbField: "sms5SentAt", statusField: "sms5Status", message: messages[4] },
       ];
-      
 
       for (let i = 0; i < smsSchedule.length; i++) {
         const { dateField, dbField, statusField, message } = smsSchedule[i];
@@ -87,7 +94,7 @@ const scheduleMessages = async (user = null) => {
 
         const scheduleTime = getScheduleTimestamp(sendDate);
 
-        if (!dateField && sendDate.getTime()>Date.now()) {
+        if (!dateField && sendDate.getTime() > Date.now()) {
           console.log(`Attempting to schedule SMS ${i + 1} to ${phone}`);
           const isSent = await sendScheduledSMS(phone, message, scheduleTime);
           if (isSent) {
@@ -111,7 +118,5 @@ const scheduleMessages = async (user = null) => {
     console.error("Error scheduling messages:", error);
   }
 };
-
-
 
 export { scheduleMessages };
