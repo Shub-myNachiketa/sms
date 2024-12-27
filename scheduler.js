@@ -42,8 +42,8 @@ const messages = [
   "Enroll your child for Free Sunday Gita Class. Learn Gita through shloka, activities & stories every Sunday @11am. https://www.mynachiketa.com/gita-class",
   "Want to tell Gita, Vedas, Upanishads based Stories to your kid? Explore https://www.mynachiketa.com/moral-stories, No:1 on Google Search for Bhagvad Gita Stories",
   "Get your child to learn Gita Songs at https://www.youtube.com/@my_Nachiketa. Subscribe now!",
-  "You checked Gita books/Stories. Get shlokas, stories, colouring, activity books for your child NOW. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books",
-  "Buy Gita books with an extra 10% discount today on book sets. More than 30,000 books sold. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books",
+  "You checked Gita books/Stories Get shlokas, stories, colouring, activity books for your child NOW. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books",
+  "Buy Gita books in extra 10% discount today on book sets. More than 30,000 books sold. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books",
 ];
 
 const getNextSaturday = (date) => {
