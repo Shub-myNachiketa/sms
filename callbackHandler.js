@@ -3,6 +3,11 @@ import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 import { scheduleMessages } from './scheduler.js';
 import { sendSMS } from './smsService.js';
+import cors from 'cors';
+
+
+
+
 
 
 dotenv.config({ path: '.env.local' });
@@ -11,6 +16,8 @@ const app = express();
 const port = process.env.PORT || 3000;
 const mongoUri = process.env.MONGO_URI;
 const dbName = process.env.DB_NAME;
+
+
 
 //mssg for 333615
 const mssg = "Buy Gita books in extra 10% discount today on book sets. More than 30,000 books sold. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books";
@@ -32,6 +39,12 @@ async function connectToDB() {
     throw error;
   }
 }
+
+app.use(cors({
+  origin: '*', 
+  methods: ['GET', 'POST'],             
+  allowedHeaders: ['Content-Type'],  
+}));
 
 app.use(express.json());
 
