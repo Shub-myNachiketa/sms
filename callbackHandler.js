@@ -52,17 +52,16 @@ app.post('/poptin-callback', async (req, res) => {
   try {
     const db = await connectToDB();
     const collection = db.collection('PoptinLeads');
-    const { textfieldemail: email, textfieldphone: phone, fbclid } = req.body;
+    const { text_1: phone, fbclid } = req.body;
 
     // Validate required fields
-    if (!email || !phone) {
+    if (!phone) {
       return res.status(400).json({ error: 'Missing required fields: email or phone' });
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Invalid email format' });
+    const phoneRegex = /^[6-9]\d{9}$/; 
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({ error: 'Invalid phone number format' });
     }
 
     const createdDate = new Date();
