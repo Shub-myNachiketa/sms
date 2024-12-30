@@ -4,7 +4,11 @@ import dotenv from 'dotenv';
 import { scheduleMessages } from './scheduler.js';
 import { sendSMS } from './smsService.js';
 import cors from 'cors';
-import Queue from 'bull';
+
+
+
+
+
 
 dotenv.config({ path: '.env.local' });
 
@@ -13,23 +17,22 @@ const port = process.env.PORT || 3000;
 const mongoUri = process.env.MONGO_URI;
 const dbName = process.env.DB_NAME;
 
-// Message for the SMS
+
+
+//mssg for 333615
 const mssg = "Buy Gita books in extra 10% discount today on book sets. More than 30,000 books sold. Use discount coupon 10BGAZ. https://www.mynachiketa.com/books";
 
-// Task Queue
-const taskQueue = new Queue('tasks', {
-  redis: { host: 'localhost', port: 6379 }, // Adjust Redis configuration if needed
-});
+// const mssg= "Hi Parents! Free Sunday Gita Class for kids by myNachiketa.com from 19th May 11am. Register now bit.ly/4b8itmk";
 
 let db;
 async function connectToDB() {
   if (db) return db;
   try {
     console.log('Connecting to MongoDB...');
-    const client = new MongoClient(mongoUri, {
-      maxPoolSize: 10, // Pool size for better performance
-      useUnifiedTopology: true,
-    });
+    const client = new MongoClient(mongoUri,{
+      maxPoolSize:10
+    }
+    );
     await client.connect();
     db = client.db(dbName);
     console.log('Connected to MongoDB!');
@@ -41,90 +44,100 @@ async function connectToDB() {
 }
 
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
+  origin: '*', 
+  methods: ['GET', 'POST'],             
+  allowedHeaders: ['Content-Type'],  
 }));
 
 app.use(express.json());
-
-// Task Queue Processor
-taskQueue.process(async (job) => {
-  const { _id, phone, createdDate } = job.data;
-  const db = await connectToDB();
-  const collection = db.collection('PoptinLeads');
-
-  try {
-    console.log('Sending SMS to:', phone);
-    const isSent = await sendSMS(phone, mssg);
-    if (isSent) {
-      await collection.updateOne(
-        { _id },
-        { $set: { sms1SentAt: new Date(), sms1Status: 'sent' } }
-      );
-      console.log('SMS sent successfully:', phone);
-    } else {
-      console.error('Failed to send SMS:', phone);
-    }
-
-    console.log('Scheduling remaining messages...');
-    await scheduleMessages({ _id, phone, createdDate });
-  } catch (error) {
-    console.error('Error processing task:', error);
-  }
-});
 
 app.post('/poptin-callback', async (req, res) => {
   try {
     const db = await connectToDB();
     const collection = db.collection('PoptinLeads');
+    const {hidden_1,hidden_2,hidden_3, text_1: phone, fbclid } = req.body;
 
-    const { hidden_1, hidden_2, hidden_3, text_1: phone, fbclid } = req.body;
+    // Validate required fields
+    if (!phone) {
+      return res.status(400).json({ error: 'Missing required fields: email or phone' });
+    }
 
-    // Validate phone
-    const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phone || !phoneRegex.test(phone)) {
+    const phoneRegex = /^[6-9]\d{9}$/; 
+    if (!phoneRegex.test(phone)) {
       return res.status(400).json({ error: 'Invalid phone number format' });
     }
 
-    // Insert into database
     const createdDate = new Date();
     const userData = {
       hidden_1,
       hidden_2,
       hidden_3,
       phone,
-      platform: 'Poptin',
+      platform:"Poptin",
       fbclid,
       createdDate,
       sms1SentAt: null,
       sms1Status: null,
+      sms2SentAt: null,
+      sms2Status: null,
+      sms3SentAt: null,
+      sms3Status: null,
+      sms4SentAt: null,
+      sms4Status: null,
+      sms5SentAt: null,
+      sms5Status: null,
     };
 
     const result = await collection.insertOne(userData);
 
-    // Respond immediately
+    // Send immediate SMS
+    try {
+      console.log('Sending immediate welcome SMS to:', phone);
+      const isSent = await sendSMS(phone,mssg);
+      if (isSent) {
+        await collection.updateOne(
+          { _id: result.insertedId },
+          {
+            $set: {
+              sms1SentAt: new Date(),
+              sms1Status: 'sent',
+            },
+          }
+        );
+        console.log('Immediate welcome SMS sent to:', phone);
+      } else {
+        console.error('Failed to send immediate welcome SMS to:', phone);
+      }
+    } catch (smsError) {
+      console.error('Error sending immediate SMS:', smsError);
+    }
+
+    // Schedule remaining messages for this user
+    try {
+      console.log('Scheduling remaining messages...');
+      await scheduleMessages({ 
+        _id: result.insertedId, 
+        phone, 
+        createdDate 
+      }); 
+    } catch (scheduleError) {
+      console.error('Error scheduling messages:', scheduleError);
+    }
+
+    console.log('Data saved to DB with ID:', result.insertedId);
     res.status(200).json({
       success: true,
-      message: 'Lead saved successfully. SMS will be sent shortly.',
+      message: 'Data saved successfully!',
       insertedId: result.insertedId,
     });
-
-    // Defer SMS sending to a background task
-    taskQueue.add({
-      _id: result.insertedId,
-      phone,
-      createdDate,
-    });
   } catch (error) {
-    console.error('Error saving lead:', error.message);
+    console.error('Error saving data:', error);
     res.status(500).json({
       success: false,
       message: 'Internal Server Error',
     });
   }
 });
-
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
@@ -139,3 +152,5 @@ process.on('SIGINT', async () => {
   }
   process.exit(0);
 });
+
+export default connectToDB;
