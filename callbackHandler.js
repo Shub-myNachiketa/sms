@@ -52,7 +52,7 @@ app.post('/poptin-callback', async (req, res) => {
   try {
     const db = await connectToDB();
     const collection = db.collection('PoptinLeads');
-    const { text_1: phone, fbclid } = req.body;
+    const {hidden_1,hidden_2,hidden_3, text_1: phone, fbclid } = req.body;
 
     // Validate required fields
     if (!phone) {
@@ -66,7 +66,9 @@ app.post('/poptin-callback', async (req, res) => {
 
     const createdDate = new Date();
     const userData = {
-      email,
+      hidden_1,
+      hidden_2,
+      hidden_3,
       phone,
       platform:"Poptin",
       fbclid,

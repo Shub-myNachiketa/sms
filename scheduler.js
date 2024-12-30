@@ -10,7 +10,7 @@ const sender = process.env.SENDER;
 const IST_OFFSET = 5.5 * 60 * 60 * 1000; // Offset for Indian Standard Time
 const getScheduleTimestamp = (date) => {
   const scheduledDate = new Date(date);
-  scheduledDate.setUTCHours(4, 30, 0, 0); // Set time to 8:00 AM IST (2:30 AM UTC)
+  scheduledDate.setUTCHours(5, 30, 0, 0); // Set time to 8:00 AM IST (2:30 AM UTC)
   return Math.floor(scheduledDate.getTime() / 1000); // Convert to UNIX timestamp
 };
 
@@ -20,7 +20,7 @@ const sendScheduledSMS = async (phoneNumber, message, scheduleTime) => {
     const response = await fetch(url);
     const result = await response.json();
 
-    console.log("Full API Response:", result); // Log the full response for debugging
+    console.log("Full API Response:", result); 
 
     if (result.status === "success") {
       console.log(
