@@ -78,55 +78,53 @@ app.post('/poptin-callback', async (req, res) => {
   try {
     const db = await connectToDB();
     const collection = db.collection('PoptinLeads');
+
     const { hidden_1, hidden_2, hidden_3, text_1: phone, fbclid } = req.body;
 
-    // Validate phone number
+    // Validate phone
     const phoneRegex = /^[6-9]\d{9}$/;
     if (!phone || !phoneRegex.test(phone)) {
       return res.status(400).json({ error: 'Invalid phone number format' });
     }
 
-    // Save lead data
+    // Insert into database
     const createdDate = new Date();
     const userData = {
       hidden_1,
       hidden_2,
       hidden_3,
       phone,
-      platform: "Poptin",
+      platform: 'Poptin',
       fbclid,
       createdDate,
       sms1SentAt: null,
       sms1Status: null,
-      sms2SentAt: null,
-      sms2Status: null,
-      sms3SentAt: null,
-      sms3Status: null,
-      sms4SentAt: null,
-      sms4Status: null,
-      sms5SentAt: null,
-      sms5Status: null,
     };
 
     const result = await collection.insertOne(userData);
 
-    // Enqueue task for background processing
-    await taskQueue.add({ _id: result.insertedId, phone, createdDate });
-
-    console.log('Lead saved and task queued:', result.insertedId);
+    // Respond immediately
     res.status(200).json({
       success: true,
-      message: 'Lead saved successfully, processing tasks in the background.',
+      message: 'Lead saved successfully. SMS will be sent shortly.',
       insertedId: result.insertedId,
     });
+
+    // Defer SMS sending to a background task
+    taskQueue.add({
+      _id: result.insertedId,
+      phone,
+      createdDate,
+    });
   } catch (error) {
-    console.error('Error saving lead:', error);
+    console.error('Error saving lead:', error.message);
     res.status(500).json({
       success: false,
       message: 'Internal Server Error',
     });
   }
 });
+
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
