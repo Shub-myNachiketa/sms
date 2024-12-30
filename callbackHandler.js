@@ -29,7 +29,10 @@ async function connectToDB() {
   if (db) return db;
   try {
     console.log('Connecting to MongoDB...');
-    const client = new MongoClient(mongoUri);
+    const client = new MongoClient(mongoUri,{
+      maxPoolSize:10
+    }
+    );
     await client.connect();
     db = client.db(dbName);
     console.log('Connected to MongoDB!');
