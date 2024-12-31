@@ -42,3 +42,4 @@ ngrok.log
 
 # Ignore any local test files
 test-output/
+.vercel
