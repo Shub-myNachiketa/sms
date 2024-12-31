@@ -1,6 +1,5 @@
 import fetch from "node-fetch";
 import dotenv from "dotenv";
-import connectToDB from "./callbackHandler.js";
 
 dotenv.config({ path: ".env.local" });
 
@@ -20,7 +19,7 @@ const sendScheduledSMS = async (phoneNumber, message, scheduleTime) => {
     const response = await fetch(url);
     const result = await response.json();
 
-    console.log("Full API Response:", result); 
+    console.log("Full API Response:", result);
 
     if (result.status === "success") {
       console.log(
@@ -36,7 +35,6 @@ const sendScheduledSMS = async (phoneNumber, message, scheduleTime) => {
     return false;
   }
 };
-
 
 const messages = [
   "Enroll your child for Free Sunday Gita Class. Learn Gita through shloka, activities & stories every Sunday @11am. https://www.mynachiketa.com/gita-class",
@@ -54,63 +52,24 @@ const getNextSaturday = (date) => {
   return nextSaturday;
 };
 
-const scheduleMessages = async (user = null) => {
-  const db = await connectToDB();
-  const collection = db.collection("PoptinLeads");
-
+const scheduleMessages = async (phone, createdDate) => {
   try {
-    const users = user
-      ? [user]
-      : await collection.find({}).toArray();
+    const nextSaturdayAfterCreated = getNextSaturday(createdDate);
 
-    for (const u of users) {
-      console.log("user = ", u);
-      const {
-        _id,
-        phone,
-        createdDate,
-        sms1SentAt,
-        sms2SentAt,
-        sms3SentAt,
-        sms4SentAt,
-        sms5SentAt,
-      } = u;
+    for (let i = 0; i < messages.length; i++) {
+      const sendDate = new Date(nextSaturdayAfterCreated);
+      sendDate.setDate(sendDate.getDate() + 7 * i);
 
-      const nextSaturdayAfterCreated = getNextSaturday(createdDate);
+      const scheduleTime = getScheduleTimestamp(sendDate);
 
-      const smsSchedule = [
-        { dateField: sms1SentAt, dbField: "sms1SentAt", statusField: "sms1Status", message: messages[0] },
-        { dateField: sms2SentAt, dbField: "sms2SentAt", statusField: "sms2Status", message: messages[1] },
-        { dateField: sms3SentAt, dbField: "sms3SentAt", statusField: "sms3Status", message: messages[2] },
-        { dateField: sms4SentAt, dbField: "sms4SentAt", statusField: "sms4Status", message: messages[3] },
-        { dateField: sms5SentAt, dbField: "sms5SentAt", statusField: "sms5Status", message: messages[4] },
-      ];
+      if (sendDate.getTime() > Date.now()) {
+        console.log(`Attempting to schedule SMS ${i + 1} to ${phone}`);
+        const isSent = await sendScheduledSMS(phone, messages[i], scheduleTime);
 
-      for (let i = 0; i < smsSchedule.length; i++) {
-        const { dateField, dbField, statusField, message } = smsSchedule[i];
-
-        let sendDate = new Date(nextSaturdayAfterCreated);
-        sendDate.setDate(sendDate.getDate() + 7 * i);
-
-        const scheduleTime = getScheduleTimestamp(sendDate);
-
-        if (!dateField && sendDate.getTime() > Date.now()) {
-          console.log(`Attempting to schedule SMS ${i + 1} to ${phone}`);
-          const isSent = await sendScheduledSMS(phone, message, scheduleTime);
-          if (isSent) {
-            await collection.updateOne(
-              { _id },
-              {
-                $set: {
-                  [dbField]: new Date(),
-                  [statusField]: "scheduled",
-                },
-              }
-            );
-            console.log(`SMS ${i + 1} scheduled for ${phone}`);
-          } else {
-            console.error(`Failed to schedule SMS ${i + 1} for ${phone}`);
-          }
+        if (isSent) {
+          console.log(`SMS ${i + 1} scheduled for ${phone} at ${sendDate}`);
+        } else {
+          console.error(`Failed to schedule SMS ${i + 1} for ${phone}`);
         }
       }
     }
