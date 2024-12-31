@@ -1,25 +1,15 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "callbackHandler.js",
-        "use": "@vercel/node"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "callbackHandler.js"
-      }
-    ],
-    
-        "crons": [
-          {
-            "path": "/api/cron.js",
-            "schedule": "0 2 * * *"
-          }
-        ]
-      
-    
-  }
-  
+  "version": 2,
+  "builds": [
+    {
+      "src": "callbackHandler.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/poptin-callback",
+      "dest": "callbackHandler.js"
+    }
+  ]
+}
