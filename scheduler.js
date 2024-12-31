@@ -6,7 +6,7 @@ dotenv.config({ path: ".env.local" });
 const apiKey = process.env.TEXTLOCAL_API_KEY;
 const sender = process.env.SENDER;
 
-const IST_OFFSET = 5.5 * 60 * 60 * 1000; // Offset for Indian Standard Time
+const IST_OFFSET = 5.5 * 60 * 60 * 1000; 
 const getScheduleTimestamp = (date) => {
   const scheduledDate = new Date(date);
   scheduledDate.setUTCHours(5, 30, 0, 0); // Set time to 8:00 AM IST (2:30 AM UTC)

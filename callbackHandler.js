@@ -20,11 +20,11 @@ app.use(cors({
 
 app.use(express.json());
 
-app.post('/poptin-callback', async (req, res) => {
+app.post('/poptin-callback',async(req, res) => {
+  console.log('Route hit with body:', req.body);
   try {
     const { hidden_1, hidden_2, hidden_3, text_1: phone, fbclid } = req.body;
 
-    // Validate required fields
     if (!phone) {
       return res.status(400).json({ error: 'Missing required fields: phone' });
     }
